@@ -11,3 +11,5 @@
 *.tmp
 *.swp
 *~
+.apptainer-cache
+.apptainer-tmp
