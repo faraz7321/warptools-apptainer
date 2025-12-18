@@ -24,6 +24,17 @@ Key points:
 ## Requirements
 
 - `apptainer` (or `singularity`) installed on the build machine, see: https://github.com/apptainer/apptainer/blob/main/INSTALL.md
+- apptainer can be installed with ansible
+```bash
+sudo apt-get update
+sudo apt-get install -y git python3 python3-venv python3-pip
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip ansible
+
+ANSIBLE_CONFIG=ansible/ansible.cfg ansible-playbook -K ansible/playbooks/install_apptainer.yml
+```
 - For non-root builds: user namespaces + fakeroot configured (or use remote build)
 - The included Ansible role installs Apptainer following the upstream guide:
   `https://github.com/apptainer/apptainer/blob/main/INSTALL.md`
