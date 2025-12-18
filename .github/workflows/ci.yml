@@ -1,0 +1,40 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-verify:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install linters
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ansible ansible-lint yamllint ruff
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Verify pinned Warp version exists upstream
+        run: |
+          ./scripts/verify_warp_pin.py
+
+      - name: Lint repo
+        run: |
+          ./scripts/lint.sh
+          ruff check ./scripts/verify_warp_pin.py
+          ansible-lint
+
+      - name: Ansible syntax-check
+        run: |
+          ANSIBLE_CONFIG=ansible/ansible.cfg ansible-playbook --syntax-check ansible/playbooks/install_apptainer.yml
+          ANSIBLE_CONFIG=ansible/ansible.cfg ansible-playbook --syntax-check ansible/playbooks/build_container.yml

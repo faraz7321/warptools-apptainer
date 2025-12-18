@@ -1,0 +1,35 @@
+name: build-container
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Ansible
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ansible
+
+      - name: Install Apptainer (from source)
+        run: |
+          ANSIBLE_CONFIG=ansible/ansible.cfg ansible-playbook ansible/playbooks/install_apptainer.yml
+
+      - name: Build SIF (may take a long time)
+        run: |
+          make build
+
+      - name: Smoke test (CPU-only)
+        run: |
+          make smoke-test
