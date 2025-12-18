@@ -1,0 +1,100 @@
+Bootstrap: docker
+From: nvidia/cuda:11.8.0-runtime-ubuntu20.04
+
+%labels
+  Author "Faraz Ahmad"
+  Description "WarpTools/Warp installed via conda on CUDA 11.8 runtime base (Ubuntu 20.04)"
+  UpstreamRepo "https://github.com/warpem/warp"
+  UpstreamGuide "https://github.com/warpem/warp#linux"
+
+%post
+  #!/bin/bash
+  set -euxo pipefail
+
+  # some basic dependencies
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update
+  apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    bzip2 \
+    git \
+    libgomp1 \
+  && rm -rf /var/lib/apt/lists/*
+
+  # Miniforge is the maintained successor to Mambaforge. We install Miniforge and
+  # then add mamba for faster solves (equivalent to "Mambaforge-like" UX).
+  MINIFORGE_VERSION="25.11.0-1"
+  MINIFORGE_INSTALLER="Miniforge3-${MINIFORGE_VERSION}-Linux-x86_64.sh"
+  MINIFORGE_URL="https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/${MINIFORGE_INSTALLER}"
+  MINIFORGE_SHA256="be1bad9d4e67a8753eb76fb4940e9a08036786675c7adf060627e55791bf110d"
+
+  curl -fsSL "${MINIFORGE_URL}" -o "/tmp/${MINIFORGE_INSTALLER}"
+  echo "${MINIFORGE_SHA256}  /tmp/${MINIFORGE_INSTALLER}" | sha256sum -c -
+  bash "/tmp/${MINIFORGE_INSTALLER}" -b -p /opt/conda
+  rm -f "/tmp/${MINIFORGE_INSTALLER}"
+
+  # Configure conda
+  export PATH="/opt/conda/bin:${PATH}"
+
+  conda config --system --set always_yes yes
+  conda config --system --set changeps1 no
+  conda config --system --set auto_activate_base false
+  conda config --system --set channel_priority strict
+  conda config --system --set show_channel_urls true
+
+  conda install -n base -c conda-forge mamba
+  conda clean -a -y
+
+  # Compatible Warp version currently published for linux-64 in the warpem channel.
+  WARP_VERSION="2.0.0dev36"
+
+  mamba create -n warp "warp=${WARP_VERSION}" \
+    -c warpem -c nvidia/label/cuda-11.8.0 -c pytorch -c conda-forge
+
+  source /opt/conda/etc/profile.d/conda.sh
+  conda activate warp
+  conda list warp
+
+  conda clean -a -y
+
+%environment
+  export PATH="/opt/conda/envs/warp/bin:/opt/conda/bin:${PATH}"
+  export CONDA_DEFAULT_ENV="warp"
+  export CONDA_PREFIX="/opt/conda/envs/warp"
+  export LD_LIBRARY_PATH="/opt/conda/envs/warp/lib:/opt/conda/lib:${LD_LIBRARY_PATH}"
+
+%runscript
+  #!/bin/bash
+  set -euo pipefail
+  if [[ "$#" -eq 0 ]]; then
+    set -- --help
+  fi
+
+  if [[ -f /opt/conda/etc/profile.d/conda.sh ]]; then
+    # Best-effort activation; if this fails we still try to run via PATH.
+    source /opt/conda/etc/profile.d/conda.sh || true
+    conda activate warp >/dev/null 2>&1 || true
+  fi
+
+  if command -v WarpTools >/dev/null 2>&1; then
+    exec WarpTools "$@"
+  fi
+
+  if command -v warp >/dev/null 2>&1; then
+    exec warp "$@"
+  fi
+
+  echo "ERROR: Neither 'WarpTools' nor 'warp' was found on PATH." >&2
+  exec /bin/bash
+
+%test
+  #!/bin/bash
+  set -euxo pipefail
+  command -v conda
+  conda list warp | head -n 80
+  if command -v WarpTools >/dev/null 2>&1; then
+    WarpTools --help | head -n 30
+  else
+    warp --help | head -n 30
+  fi
