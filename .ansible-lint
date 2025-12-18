@@ -1,0 +1,9 @@
+---
+profile: basic
+skip_list:
+  # Allow become usage for provisioning playbooks/roles.
+  - "partial-become"
+  # Ansible-lint can be noisy about command usage; here it's intentional.
+  - "command-instead-of-module"
+warn_list:
+  - "yaml"
