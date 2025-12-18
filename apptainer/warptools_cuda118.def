@@ -22,14 +22,11 @@ From: nvidia/cuda:11.8.0-runtime-ubuntu20.04
 
   Notes:
     - The upstream conda channel currently publishes 2.0.0dev* builds on Linux.
-      The recipe attempts to install warp=2.0.0 and falls back to a known
-      available version if 2.0.0 is not present.
+      This image pins a compatible 2.0.0dev* version from the official channel.
 
-%post
-  #!/bin/bash
+%post -c /bin/bash
   set -euxo pipefail
 
-  # some basic dependencies
   export DEBIAN_FRONTEND=noninteractive
   apt-get update
   apt-get install -y --no-install-recommends \
@@ -52,7 +49,6 @@ From: nvidia/cuda:11.8.0-runtime-ubuntu20.04
   bash "/tmp/${MINIFORGE_INSTALLER}" -b -p /opt/conda
   rm -f "/tmp/${MINIFORGE_INSTALLER}"
 
-  # Configure conda
   export PATH="/opt/conda/bin:${PATH}"
 
   conda config --system --set always_yes yes
@@ -106,8 +102,7 @@ From: nvidia/cuda:11.8.0-runtime-ubuntu20.04
   echo "ERROR: Neither 'WarpTools' nor 'warp' was found on PATH." >&2
   exec /bin/bash
 
-%test
-  #!/bin/bash
+%test -c /bin/bash
   set -euxo pipefail
   command -v conda
   conda list warp | head -n 80
