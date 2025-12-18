@@ -25,3 +25,19 @@ Key points:
 
 - `apptainer` (or `singularity`) installed on the build machine
 - For non-root builds: user namespaces + fakeroot configured (or use remote build)
+
+## Build
+
+Build without root (preferred on HPC if supported):
+
+```bash
+./scripts/build.sh
+```
+
+This runs:
+
+```bash
+apptainer build --fakeroot warptools_cuda118.sif apptainer/warptools_cuda118.def
+```
+
+If fakeroot is not available, `scripts/build.sh` prints pragmatic alternatives (remote build, build-as-root elsewhere, admin configuration hints).
