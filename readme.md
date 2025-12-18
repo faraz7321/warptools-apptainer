@@ -41,3 +41,54 @@ apptainer build --fakeroot warptools_cuda118.sif apptainer/warptools_cuda118.def
 ```
 
 If fakeroot is not available, `scripts/build.sh` prints pragmatic alternatives (remote build, build-as-root elsewhere, admin configuration hints).
+
+## Run
+
+Default run (uses `%runscript`):
+
+```bash
+apptainer run warptools_cuda118.sif --help
+```
+
+Explicit exec:
+
+```bash
+apptainer exec warptools_cuda118.sif WarpTools --help
+```
+
+If the binary name differs in your installed Warp try:
+
+```bash
+apptainer exec warptools_cuda118.sif warp --help
+```
+
+## GPU notes (`--nv`)
+
+To bind host NVIDIA libraries/drivers into the container:
+
+```bash
+apptainer exec --nv warptools_cuda118.sif WarpTools --help
+```
+
+## Smoke test
+
+```bash
+./scripts/test.sh
+```
+
+Optional GPU check:
+
+```bash
+APPTAINER_NV_TEST=1 ./scripts/test.sh
+```
+
+## What’s included / repo layout
+
+- `apptainer/warptools_cuda118.def` — Apptainer definition (CUDA 11.8 runtime base, conda install, WarpTools runscript)
+- `scripts/build.sh` — builds `warptools_cuda118.sif` with `--fakeroot` and prints helpful guidance if it fails
+- `scripts/test.sh` — smoke tests: `WarpTools --help` + `conda list warp` (plus optional `--nv` check)
+- `notes/00-plan.md` — short plan + assumptions
+- `notes/01-build-log.md` — template to paste build output / logs
+- `notes/02-troubleshooting.md` — common issues + fixes
+- `ansible/` — playbooks to provision Apptainer and build the image on Debian/Ubuntu
+- `.github/workflows/` — CI checks (lint + verify pinned Warp version exists upstream)
