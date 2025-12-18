@@ -14,13 +14,14 @@
       - wget
       - git
       - ca-certificates
+      - pkg-config
 
 - name: Install libsubid-dev when available (Ubuntu 24.04+/Debian 12+)
   ansible.builtin.apt:
     name: libsubid-dev
   when: >
-    (ansible_distribution == "Ubuntu" and ansible_distribution_version is version("24.04", ">="))
-    or (ansible_distribution == "Debian" and ansible_distribution_version is version("12", ">="))
+    (ansible_facts["distribution"] == "Ubuntu" and ansible_facts["distribution_version"] is version("24.04", ">="))
+    or (ansible_facts["distribution"] == "Debian" and ansible_facts["distribution_version"] is version("12", ">="))
 
 - name: Download Go toolchain tarball
   ansible.builtin.get_url:
@@ -64,7 +65,7 @@
     chdir: "{{ apptainer_src_parent }}/apptainer-{{ apptainer_version }}"
     creates: "{{ apptainer_src_parent }}/apptainer-{{ apptainer_version }}/builddir/Makefile"
   environment:
-    PATH: "/usr/local/go/bin:{{ ansible_env.PATH }}"
+    PATH: "/usr/local/go/bin:{{ ansible_facts['env']['PATH'] }}"
 
 - name: Build Apptainer
   ansible.builtin.command:
@@ -73,7 +74,7 @@
   environment:
     # Avoids some environments failing on a missing $HOME during 'go build'.
     HOME: "/root"
-    PATH: "/usr/local/go/bin:{{ ansible_env.PATH }}"
+    PATH: "/usr/local/go/bin:{{ ansible_facts['env']['PATH'] }}"
 
 - name: Install Apptainer
   ansible.builtin.command:
@@ -81,4 +82,4 @@
     chdir: "{{ apptainer_src_parent }}/apptainer-{{ apptainer_version }}"
     creates: "{{ apptainer_prefix }}/bin/apptainer"
   environment:
-    PATH: "/usr/local/go/bin:{{ ansible_env.PATH }}"
+    PATH: "/usr/local/go/bin:{{ ansible_facts['env']['PATH'] }}"
