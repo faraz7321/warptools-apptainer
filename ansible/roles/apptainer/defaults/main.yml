@@ -2,3 +2,4 @@
 apptainer_version: "1.4.5"
 apptainer_prefix: "/usr/local"
 apptainer_src_parent: "/usr/local/src"
+go_version: "1.24.2"

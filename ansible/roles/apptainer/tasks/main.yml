@@ -3,19 +3,41 @@
   ansible.builtin.apt:
     update_cache: true
     name:
-      - autoconf
-      - automake
       - build-essential
-      - ca-certificates
-      - curl
-      - git
       - libseccomp-dev
-      - pkg-config
-      - squashfs-tools
       - uidmap
+      - fakeroot
+      - cryptsetup
+      - tzdata
+      - dh-apparmor
+      - curl
       - wget
-      - zlib1g-dev
-      - golang-go
+      - git
+      - ca-certificates
+
+- name: Install libsubid-dev when available (Ubuntu 24.04+/Debian 12+)
+  ansible.builtin.apt:
+    name: libsubid-dev
+  when: >
+    (ansible_distribution == "Ubuntu" and ansible_distribution_version is version("24.04", ">="))
+    or (ansible_distribution == "Debian" and ansible_distribution_version is version("12", ">="))
+
+- name: Download Go toolchain tarball
+  ansible.builtin.get_url:
+    url: "https://dl.google.com/go/go{{ go_version }}.linux-amd64.tar.gz"
+    dest: "/tmp/go{{ go_version }}.linux-amd64.tar.gz"
+    mode: "0644"
+
+- name: Remove existing Go installation (if present)
+  ansible.builtin.file:
+    path: "/usr/local/go"
+    state: absent
+
+- name: Install Go toolchain to /usr/local
+  ansible.builtin.unarchive:
+    src: "/tmp/go{{ go_version }}.linux-amd64.tar.gz"
+    dest: "/usr/local"
+    remote_src: true
 
 - name: Ensure Apptainer source directory exists
   ansible.builtin.file:
@@ -41,6 +63,8 @@
     cmd: "./mconfig --prefix={{ apptainer_prefix }}"
     chdir: "{{ apptainer_src_parent }}/apptainer-{{ apptainer_version }}"
     creates: "{{ apptainer_src_parent }}/apptainer-{{ apptainer_version }}/builddir/Makefile"
+  environment:
+    PATH: "/usr/local/go/bin:{{ ansible_env.PATH }}"
 
 - name: Build Apptainer
   ansible.builtin.command:
@@ -49,9 +73,12 @@
   environment:
     # Avoids some environments failing on a missing $HOME during 'go build'.
     HOME: "/root"
+    PATH: "/usr/local/go/bin:{{ ansible_env.PATH }}"
 
 - name: Install Apptainer
   ansible.builtin.command:
     cmd: "make -C builddir install"
     chdir: "{{ apptainer_src_parent }}/apptainer-{{ apptainer_version }}"
     creates: "{{ apptainer_prefix }}/bin/apptainer"
+  environment:
+    PATH: "/usr/local/go/bin:{{ ansible_env.PATH }}"
