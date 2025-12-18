@@ -1,0 +1,6 @@
+---
+- name: Install Apptainer from source (Debian/Ubuntu)
+  hosts: localhost
+  become: true
+  roles:
+    - role: apptainer

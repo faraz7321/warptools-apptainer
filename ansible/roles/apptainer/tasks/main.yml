@@ -1,0 +1,57 @@
+---
+- name: Install Apptainer build dependencies (Debian/Ubuntu)
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - autoconf
+      - automake
+      - build-essential
+      - ca-certificates
+      - curl
+      - git
+      - libseccomp-dev
+      - pkg-config
+      - squashfs-tools
+      - uidmap
+      - wget
+      - zlib1g-dev
+      - golang-go
+
+- name: Ensure Apptainer source directory exists
+  ansible.builtin.file:
+    path: "{{ apptainer_src_parent }}"
+    state: directory
+    mode: "0755"
+
+- name: Download Apptainer source tarball
+  ansible.builtin.get_url:
+    url: "https://github.com/apptainer/apptainer/releases/download/v{{ apptainer_version }}/apptainer-{{ apptainer_version }}.tar.gz"
+    dest: "{{ apptainer_src_parent }}/apptainer-{{ apptainer_version }}.tar.gz"
+    mode: "0644"
+
+- name: Extract Apptainer sources
+  ansible.builtin.unarchive:
+    src: "{{ apptainer_src_parent }}/apptainer-{{ apptainer_version }}.tar.gz"
+    dest: "{{ apptainer_src_parent }}"
+    remote_src: true
+    creates: "{{ apptainer_src_parent }}/apptainer-{{ apptainer_version }}"
+
+- name: Configure Apptainer
+  ansible.builtin.command:
+    cmd: "./mconfig --prefix={{ apptainer_prefix }}"
+    chdir: "{{ apptainer_src_parent }}/apptainer-{{ apptainer_version }}"
+    creates: "{{ apptainer_src_parent }}/apptainer-{{ apptainer_version }}/builddir/Makefile"
+
+- name: Build Apptainer
+  ansible.builtin.command:
+    cmd: "make -C builddir"
+    chdir: "{{ apptainer_src_parent }}/apptainer-{{ apptainer_version }}"
+  environment:
+    # Avoids some environments failing on a missing $HOME during 'go build'.
+    HOME: "/root"
+
+- name: Install Apptainer
+  ansible.builtin.command:
+    cmd: "make -C builddir install"
+    chdir: "{{ apptainer_src_parent }}/apptainer-{{ apptainer_version }}"
+    creates: "{{ apptainer_prefix }}/bin/apptainer"

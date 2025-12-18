@@ -1,0 +1,20 @@
+---
+- name: Build WarpTools Apptainer image
+  hosts: localhost
+  become: true
+  vars:
+    repo_root: "{{ playbook_dir }}/../.."
+    sif_path: "{{ repo_root }}/warptools_cuda118.sif"
+    def_path: "{{ repo_root }}/apptainer/warptools_cuda118.def"
+  roles:
+    - role: apptainer
+  tasks:
+    - name: Build container image
+      ansible.builtin.command:
+        cmd: "bash -lc './scripts/build.sh {{ def_path }} {{ sif_path }}'"
+        chdir: "{{ repo_root }}"
+
+    - name: Smoke test container image (CPU-only)
+      ansible.builtin.command:
+        cmd: "bash -lc './scripts/test.sh {{ sif_path }}'"
+        chdir: "{{ repo_root }}"
