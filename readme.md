@@ -20,3 +20,8 @@ Key points:
 - Install method: conda (Miniforge + mamba) into `/opt/conda`
 - Default run: `WarpTools --help` via `%runscript` so `apptainer run … --help` works
 - GPU usage: `apptainer exec --nv …`
+
+## Requirements
+
+- `apptainer` (or `singularity`) installed on the build machine
+- For non-root builds: user namespaces + fakeroot configured (or use remote build)
