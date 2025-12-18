@@ -7,6 +7,24 @@ From: nvidia/cuda:11.8.0-runtime-ubuntu20.04
   UpstreamRepo "https://github.com/warpem/warp"
   UpstreamGuide "https://github.com/warpem/warp#linux"
 
+%help
+  This image installs Warp for Linux via conda (Warp includes WarpTools).
+
+  Build:
+    apptainer build --fakeroot warptools_cuda118.sif apptainer/warptools_cuda118.def
+
+  Run:
+    apptainer run warptools_cuda118.sif --help
+    apptainer exec warptools_cuda118.sif WarpTools --help
+
+  GPU usage:
+    apptainer exec --nv warptools_cuda118.sif WarpTools --help
+
+  Notes:
+    - The upstream conda channel currently publishes 2.0.0dev* builds on Linux.
+      The recipe attempts to install warp=2.0.0 and falls back to a known
+      available version if 2.0.0 is not present.
+
 %post
   #!/bin/bash
   set -euxo pipefail
