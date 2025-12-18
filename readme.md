@@ -23,8 +23,10 @@ Key points:
 
 ## Requirements
 
-- `apptainer` (or `singularity`) installed on the build machine
+- `apptainer` (or `singularity`) installed on the build machine, see: https://github.com/apptainer/apptainer/blob/main/INSTALL.md
 - For non-root builds: user namespaces + fakeroot configured (or use remote build)
+- The included Ansible role installs Apptainer following the upstream guide:
+  `https://github.com/apptainer/apptainer/blob/main/INSTALL.md`
 
 ## Build
 
