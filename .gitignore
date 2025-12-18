@@ -1,0 +1,13 @@
+/build/
+*.sif
+*.img
+*.simg
+*.sandbox/
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.log
+*.tmp
+*.swp
+*~
