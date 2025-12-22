@@ -69,5 +69,5 @@ Encountered problems while solving:
 ```
 
 Suggested action:
-- Ensure channels match upstream order and enable strict channel priority.
+- Ensure channels match upstream order and use flexible channel priority.
 - Try the pinned fallback version, or update the pin after checking upstream repodata.

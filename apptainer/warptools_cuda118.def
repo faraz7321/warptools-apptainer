@@ -54,7 +54,8 @@ From: nvidia/cuda:11.8.0-runtime-ubuntu20.04
   conda config --system --set always_yes yes
   conda config --system --set changeps1 no
   conda config --system --set auto_activate_base false
-  conda config --system --set channel_priority strict
+  # Flexible priority avoids conflicts between pytorch and conda-forge builds.
+  conda config --system --set channel_priority flexible
   conda config --system --set show_channel_urls true
 
   conda install -n base -c conda-forge mamba
@@ -66,8 +67,11 @@ From: nvidia/cuda:11.8.0-runtime-ubuntu20.04
   mamba create -n warp "warp=${WARP_VERSION}" \
     -c warpem -c nvidia/label/cuda-11.8.0 -c pytorch -c conda-forge
 
+  # Conda activation scripts expect unset vars; disable nounset for activation.
+  set +u
   source /opt/conda/etc/profile.d/conda.sh
   conda activate warp
+  set -u
   conda list warp
 
   conda clean -a -y

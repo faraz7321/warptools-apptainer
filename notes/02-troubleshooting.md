@@ -10,6 +10,17 @@ Fix options:
 - Use remote build: `apptainer build --remote warptools_cuda118.sif apptainer/warptools_cuda118.def`
 - Build on a workstation (root) and copy the `.sif` to the cluster.
 
+## TLS/OCI pull errors (`tls: bad record MAC`)
+
+Symptoms:
+- `conveyor failed to get: error writing layer: local error: tls: bad record MAC`
+- Other transient TLS/connection reset errors when fetching the base image.
+
+Fixes:
+- Retry the build (the script retries transient pull errors; tune with `APPTAINER_BUILD_RETRIES` and `APPTAINER_BUILD_RETRY_DELAY`).
+- If you are behind a proxy, ensure `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY` are set correctly.
+- Try a more reliable network or a registry mirror.
+
 ## `WarpTools` not found
 
 Symptoms:
@@ -31,7 +42,7 @@ Symptoms:
 Fixes:
 - Ensure channel order matches upstream:
   - `-c warpem -c nvidia/label/cuda-11.8.0 -c pytorch -c conda-forge`
-- Keep strict channel priority enabled (done in `%post`).
+- Use flexible channel priority (strict can conflict with the pinned pytorch build).
 - If a specific version disappears upstream, update the fallback pin and re-run:
   - `./scripts/verify_warp_pin.py`
 

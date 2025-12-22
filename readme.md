@@ -40,7 +40,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip ansible
 
-ANSIBLE_CONFIG=ansible/ansible.cfg ansible-playbook -K ansible/playbooks/build_container.yml
+ANSIBLE_CONFIG=ansible/ansible.cfg ansible-playbook -vvv -K ansible/playbooks/build_container.yml
 ```
 
 Optional GPU check:
